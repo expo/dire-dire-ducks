@@ -35,7 +35,7 @@ export default class App extends React.Component {
 
     // cannon.js init
     const world = new CANNON.World();
-    world.gravity.set(0, 0, -9.82);
+    world.gravity.set(0, -9.82, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
 
     // lights
@@ -49,21 +49,43 @@ export default class App extends React.Component {
     const groundBody = new CANNON.Body({
       mass: 0,
       shape: new CANNON.Plane(),
+      position: new CANNON.Vec3(0, -0.22, 0),
     });
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2);
     world.add(groundBody);
 
+    // objects (three.js mesh <-> cannon.js body pairs)
+    const objects = [];
+
     // cube
-    const cubeMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(0.07, 0.07, 0.07),
-      new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
-    cubeMesh.position.z = -0.4;
-    scene.add(cubeMesh);
+    for (let i = 0; i < 50; ++i) {
+      const cube = {}
+      cube.mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.07, 0.07, 0.07),
+        new THREE.MeshPhongMaterial({
+          color: new THREE.Color(Math.random(), Math.random(), Math.random()),
+        }));
+      scene.add(cube.mesh);
+      cube.body = new CANNON.Body({
+        mass: 1,
+        shape: new CANNON.Box(new CANNON.Vec3(0.035, 0.035, 0.035)),
+        position: new CANNON.Vec3(Math.random() - 0.5, 0.5 + 3 * Math.random(), -2 + Math.random() - 0.5),
+      });
+      world.add(cube.body);
+      cube.body.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/4 + 0.02);
+      objects.push(cube);
+    }
 
     // main loop
     const animate = () => {
-      // rotate cube
-      cubeMesh.rotation.x += 0.07;
-      cubeMesh.rotation.y += 0.04;
+      // update world
+      world.step(1/ 60);
+
+      // update objects
+      objects.forEach(({ mesh, body }) => {
+        mesh.position.copy(body.position);
+        mesh.quaternion.copy(body.quaternion);
+      });
 
       // end frame and schedule new one!
       renderer.render(scene, camera);
