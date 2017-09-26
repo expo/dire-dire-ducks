@@ -3,6 +3,7 @@ import React from 'react';
 
 import * as THREE from 'three';
 import ExpoTHREE from 'expo-three';
+import * as CANNON from 'cannon';
 
 console.disableYellowBox = true;
 
@@ -31,6 +32,11 @@ export default class App extends React.Component {
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
     const renderer = ExpoTHREE.createRenderer({ gl });
     renderer.setSize(width, height);
+
+    // cannon.js init
+    const world = new CANNON.World();
+    world.gravity.set(0, 0, -9.82);
+    world.broadphase = new CANNON.NaiveBroadphase();
 
     // lights
     const dirLight = new THREE.DirectionalLight(0xffffff);
