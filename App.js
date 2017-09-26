@@ -24,12 +24,11 @@ export default class App extends React.Component {
     // const arSession = await this._glView.startARSessionAsync();
 
     const scene = new THREE.Scene();
+    // scene.background = ExpoTHREE.createARBackgroundTexture(arSession, renderer);
     // const camera = ExpoTHREE.createARCamera(arSession, width, height, 0.01, 1000);
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
     const renderer = ExpoTHREE.createRenderer({ gl });
     renderer.setSize(width, height);
-
-    // scene.background = ExpoTHREE.createARBackgroundTexture(arSession, renderer);
 
     const dirLight = new THREE.DirectionalLight(0xffffff);
     dirLight.position.set(1, 1, 1);
