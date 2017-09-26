@@ -46,17 +46,17 @@ export default class App extends React.Component {
     scene.add(ambLight);
 
     // cube
-    const geometry = new THREE.BoxGeometry(0.07, 0.07, 0.07);
-    const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-    const cube = new THREE.Mesh(geometry, material);
-    cube.position.z = -0.4;
-    scene.add(cube);
+    const cubeMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.07, 0.07, 0.07),
+      new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
+    cubeMesh.position.z = -0.4;
+    scene.add(cubeMesh);
 
     // main loop
     const animate = () => {
       // rotate cube
-      cube.rotation.x += 0.07;
-      cube.rotation.y += 0.04;
+      cubeMesh.rotation.x += 0.07;
+      cubeMesh.rotation.y += 0.04;
 
       // end frame and schedule new one!
       renderer.render(scene, camera);
