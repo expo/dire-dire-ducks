@@ -46,9 +46,11 @@ export default class App extends React.Component {
     scene.add(ambLight);
 
     // ground
+    const groundMaterial = new CANNON.Material();
     const groundBody = new CANNON.Body({
       mass: 0,
       shape: new CANNON.Plane(),
+      material: groundMaterial,
       position: new CANNON.Vec3(0, -0.22, 0),
     });
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2);
@@ -57,24 +59,27 @@ export default class App extends React.Component {
     // objects (three.js mesh <-> cannon.js body pairs)
     const objects = [];
 
-    // cube
+    // ball
+    const ballMaterial = new CANNON.Material();
     for (let i = 0; i < 50; ++i) {
-      const cube = {}
-      cube.mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(0.07, 0.07, 0.07),
+      const ball = {}
+      ball.mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.07, 8, 8),
         new THREE.MeshPhongMaterial({
           color: new THREE.Color(Math.random(), Math.random(), Math.random()),
         }));
-      scene.add(cube.mesh);
-      cube.body = new CANNON.Body({
+      scene.add(ball.mesh);
+      ball.body = new CANNON.Body({
         mass: 1,
-        shape: new CANNON.Box(new CANNON.Vec3(0.035, 0.035, 0.035)),
+        shape: new CANNON.Sphere(0.07),
+        material: ballMaterial,
         position: new CANNON.Vec3(Math.random() - 0.5, 0.5 + 3 * Math.random(), -2 + Math.random() - 0.5),
       });
-      world.add(cube.body);
-      cube.body.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/4 + 0.02);
-      objects.push(cube);
+      world.add(ball.body);
+      objects.push(ball);
     }
+    world.addContactMaterial(new CANNON.ContactMaterial(
+      groundMaterial, ballMaterial, { restitution: 0.7 }));
 
     // main loop
     const animate = () => {
