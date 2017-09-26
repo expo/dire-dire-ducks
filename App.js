@@ -23,15 +23,15 @@ export default class App extends React.Component {
     const height = gl.drawingBufferHeight;
 
     // ar init
-    // const arSession = await this._glView.startARSessionAsync();
+    const arSession = await this._glView.startARSessionAsync();
 
     // three.js init
-    const scene = new THREE.Scene();
-    // scene.background = ExpoTHREE.createARBackgroundTexture(arSession, renderer);
-    // const camera = ExpoTHREE.createARCamera(arSession, width, height, 0.01, 1000);
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
     const renderer = ExpoTHREE.createRenderer({ gl });
     renderer.setSize(width, height);
+    const scene = new THREE.Scene();
+    scene.background = ExpoTHREE.createARBackgroundTexture(arSession, renderer);
+    const camera = ExpoTHREE.createARCamera(arSession, width, height, 0.01, 1000);
+    // const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
 
     // cannon.js init
     const world = new CANNON.World();
@@ -84,7 +84,7 @@ export default class App extends React.Component {
     // main loop
     const animate = () => {
       // update world
-      world.step(1/ 60);
+      world.step(1 / 60);
 
       // update objects
       objects.forEach(({ mesh, body }) => {
