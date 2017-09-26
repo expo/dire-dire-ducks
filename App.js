@@ -45,6 +45,13 @@ export default class App extends React.Component {
     const ambLight = new THREE.AmbientLight(0x404040);
     scene.add(ambLight);
 
+    // ground
+    const groundBody = new CANNON.Body({
+      mass: 0,
+      shape: new CANNON.Plane(),
+    });
+    world.add(groundBody);
+
     // cube
     const cubeMesh = new THREE.Mesh(
       new THREE.BoxGeometry(0.07, 0.07, 0.07),
