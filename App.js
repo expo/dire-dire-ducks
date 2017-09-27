@@ -1,5 +1,6 @@
 import Expo from 'expo';
 import React from 'react';
+import { PanResponder } from 'react-native';
 
 import * as THREE from 'three';
 import ExpoTHREE from 'expo-three';
@@ -8,9 +9,26 @@ import * as CANNON from 'cannon';
 console.disableYellowBox = true;
 
 export default class App extends React.Component {
+  componentWillMount() {
+    this.panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        this.touching = true;
+      },
+      onPanResponderRelease: () => {
+        this.touching = false;
+      },
+      onPanResponderTerminate: () => {
+        this.touching = false;
+      },
+      onShouldBlockNativeResponder: () => false,
+    });
+  }
+
   render() {
     return (
       <Expo.GLView
+        {...this.panResponder.panHandlers}
         ref={(ref) => this._glView = ref}
         style={{ flex: 1 }}
         onContextCreate={this._onGLContextCreate}
@@ -61,7 +79,7 @@ export default class App extends React.Component {
 
     // ball
     const ballMaterial = new CANNON.Material();
-    for (let i = 0; i < 50; ++i) {
+    for (let i = 0; i < 20; ++i) {
       const ball = {}
       ball.mesh = new THREE.Mesh(
         new THREE.SphereGeometry(0.07, 8, 8),
@@ -79,10 +97,17 @@ export default class App extends React.Component {
       objects.push(ball);
     }
     world.addContactMaterial(new CANNON.ContactMaterial(
-      groundMaterial, ballMaterial, { restitution: 0.7 }));
+      groundMaterial, ballMaterial, {
+        restitution: 0.7,
+        friction: 0.6,
+      }));
 
     // main loop
     const animate = () => {
+      // calculate camera position
+      const cameraPos = new THREE.Vector3(0, 0, 0);
+      cameraPos.applyMatrix4(camera.matrixWorld);
+
       // update world
       world.step(1 / 60);
 
@@ -90,6 +115,14 @@ export default class App extends React.Component {
       objects.forEach(({ mesh, body }) => {
         mesh.position.copy(body.position);
         mesh.quaternion.copy(body.quaternion);
+      });
+
+      // apply force toward camera if touching
+      objects.forEach(({ body }) => {
+        if (this.touching) {
+          const d = body.position.vsub(cameraPos).unit().scale(-1.2);
+          body.applyForce(d, body.position);
+        }
       });
 
       // end frame and schedule new one!
