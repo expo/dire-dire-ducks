@@ -17,21 +17,6 @@ if (!console.timeEnd) {
   console.timeEnd = () => {};
 }
 
-const objLoader = new THREE.OBJLoader();
-const modelFromOBJ = async (moduleOrUri) => {
-  const uri = typeof moduleOrUri === 'string' ?
-              moduleOrUri :
-              Expo.Asset.fromModule(module).uri;
-  const model = await new Promise((resolve, reject) =>
-    objLoader.load(uri, resolve, () => {}, reject));
-  model.traverse((child) => {
-    if (child instanceof THREE.Mesh) {
-      child.material.color = 0xffffff;
-    }
-  });
-  return model;
-}
-
 const scaleLongestSideToSize = (mesh, size) => {
   const { x: width, y: height, z: depth } =
     new THREE.Box3().setFromObject(mesh).size();
@@ -89,10 +74,10 @@ export default class App extends React.Component {
     world.broadphase = new CANNON.NaiveBroadphase();
 
     // lights
-    const dirLight = new THREE.DirectionalLight(0xffffff);
+    const dirLight = new THREE.DirectionalLight(0xdddddd);
     dirLight.position.set(1, 1, 1);
     scene.add(dirLight);
-    const ambLight = new THREE.AmbientLight(0x404040);
+    const ambLight = new THREE.AmbientLight(0x505050);
     scene.add(ambLight);
 
     // ground
@@ -110,27 +95,43 @@ export default class App extends React.Component {
     const objects = [];
 
     // model
-    const model = await modelFromOBJ('https://raw.githubusercontent.com/arynchoong/ARVR-flood-orchard/master/images/rubber-duck.obj');
-    scaleLongestSideToSize(model, 0.14);
+    const loader = new THREE.OBJLoader();
+    const model = await new Promise((resolve, reject) =>
+      loader.load(
+        'https://raw.githubusercontent.com/arynchoong/ARVR-flood-orchard/master/images/rubber-duck.obj',
+        resolve,
+        () => {},
+        reject
+      )
+    );
+    scaleLongestSideToSize(model, 0.18);
 
     // ball
-    const ballMaterial = new CANNON.Material();
-    for (let i = 0; i < 8; ++i) {
+    const ballMaterial = new THREE.MeshPhongMaterial({
+      color: new THREE.Color(0.95, 0.95, 0),
+      specular: new THREE.Color(0.3, 0.3, 0.3),
+    })
+    const ballPhysicsMaterial = new CANNON.Material();
+    for (let i = 0; i < 20; ++i) {
       const ball = {}
       ball.mesh = model.clone();
-      ball.mesh.scale.set(0.001, 0.001, 0.001);
+      ball.mesh.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material = ballMaterial;
+        }
+      });
       scene.add(ball.mesh);
       ball.body = new CANNON.Body({
         mass: 1,
         shape: new CANNON.Sphere(0.07),
-        material: ballMaterial,
+        material: ballPhysicsMaterial,
         position: new CANNON.Vec3(Math.random() - 0.5, 0.5 + 3 * Math.random(), -2 + Math.random() - 0.5),
       });
       world.add(ball.body);
       objects.push(ball);
     }
     world.addContactMaterial(new CANNON.ContactMaterial(
-      groundMaterial, ballMaterial, {
+      groundMaterial, ballPhysicsMaterial, {
         restitution: 0.7,
         friction: 0.6,
       }));
