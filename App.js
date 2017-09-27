@@ -2,11 +2,43 @@ import Expo from 'expo';
 import React from 'react';
 import { PanResponder } from 'react-native';
 
-import * as THREE from 'three';
+const THREE = require('three');
+global.THREE = THREE;
+require('three/examples/js/loaders/OBJLoader');
 import ExpoTHREE from 'expo-three';
 import * as CANNON from 'cannon';
 
 console.disableYellowBox = true;
+
+if (!console.time) {
+  console.time = () => {};
+}
+if (!console.timeEnd) {
+  console.timeEnd = () => {};
+}
+
+const objLoader = new THREE.OBJLoader();
+const modelFromOBJ = async (moduleOrUri) => {
+  const uri = typeof moduleOrUri === 'string' ?
+              moduleOrUri :
+              Expo.Asset.fromModule(module).uri;
+  const model = await new Promise((resolve, reject) =>
+    objLoader.load(uri, resolve, () => {}, reject));
+  model.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      child.material.color = 0xffffff;
+    }
+  });
+  return model;
+}
+
+const scaleLongestSideToSize = (mesh, size) => {
+  const { x: width, y: height, z: depth } =
+    new THREE.Box3().setFromObject(mesh).size();
+  const longest = Math.max(width, Math.max(height, depth));
+  const scale = size / longest;
+  mesh.scale.set(scale, scale, scale);
+}
 
 export default class App extends React.Component {
   componentWillMount() {
@@ -77,15 +109,16 @@ export default class App extends React.Component {
     // objects (three.js mesh <-> cannon.js body pairs)
     const objects = [];
 
+    // model
+    const model = await modelFromOBJ('https://raw.githubusercontent.com/arynchoong/ARVR-flood-orchard/master/images/rubber-duck.obj');
+    scaleLongestSideToSize(model, 0.14);
+
     // ball
     const ballMaterial = new CANNON.Material();
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 8; ++i) {
       const ball = {}
-      ball.mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.07, 8, 8),
-        new THREE.MeshPhongMaterial({
-          color: new THREE.Color(Math.random(), Math.random(), Math.random()),
-        }));
+      ball.mesh = model.clone();
+      ball.mesh.scale.set(0.001, 0.001, 0.001);
       scene.add(ball.mesh);
       ball.body = new CANNON.Body({
         mass: 1,
