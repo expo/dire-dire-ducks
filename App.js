@@ -152,7 +152,7 @@ export default class App extends React.Component {
     const water = new THREE.Water(renderer, camera, scene, {
       textureWidth: 256, textureHeight: 256,
       waterNormals,
-      alpha: 0.6,
+      alpha: 0.75,
       sunDirection: dirLight.position.normalize(),
       waterColor: 0x001e0f,
       betaVersion: 0,
