@@ -1,4 +1,4 @@
-import Expo from 'expo';
+import Expo, { Asset } from 'expo';
 import React from 'react';
 import { View, PanResponder } from 'react-native';
 
@@ -150,23 +150,51 @@ export default class App extends React.Component {
     // objects (three.js mesh <-> cannon.js body pairs)
     const objects = [];
 
+    // model and texture assets
+    let modelAsset = Asset.fromModule(require('./assets/wooden-duck.obj'));
+    let textureAsset = Asset.fromModule(require('./assets/wooden-duck.png'));
+
+    // preload assets
+    await Promise.all([
+      modelAsset.downloadAsync(),
+      textureAsset.downloadAsync(),
+    ]);
+
     // model
     const loader = new THREE.OBJLoader();
-    const model = await new Promise((resolve, reject) =>
+    const model = await new Promise((resolve, reject) => 
       loader.load(
-        'https://raw.githubusercontent.com/arynchoong/ARVR-flood-orchard/master/images/rubber-duck.obj',
+        modelAsset.uri,
         resolve,
-        () => {},
+        () => {}, 
         reject
       )
     );
+
+    // texture
+    function textureFromAsset(asset) {
+      if (!asset.localUri) {
+        throw new Error(
+          `Asset '${asset.name}' needs to be downloaded before ` +
+            `being used as an OpenGL texture.`
+        );
+      }
+      const texture = new THREE.Texture();
+      texture.image = {
+        data: asset,
+        width: asset.width,
+        height: asset.height,
+      };
+      texture.needsUpdate = true;
+      texture.isDataTexture = true; // send to gl.texImage2D() verbatim
+      return texture;
+    }
+    const ballTexture = textureFromAsset(textureAsset);
+    const ballMaterial =  new THREE.MeshPhongMaterial({map: ballTexture});
+
     scaleLongestSideToSize(model, 0.18);
 
     // ball
-    const ballMaterial = new THREE.MeshPhongMaterial({
-      color: new THREE.Color(0.95, 0.95, 0),
-      specular: new THREE.Color(0.3, 0.3, 0.3),
-    })
     const ballPhysicsMaterial = new CANNON.Material();
     for (let i = 0; i < 20; ++i) {
       const ball = {}
