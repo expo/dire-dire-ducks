@@ -1,7 +1,7 @@
 {
-  "name": "ar-cool",
+  "name": "ducks-ahoy",
   "version": "0.0.0",
-  "description": "Hello Expo!",
+  "description": "Ducks, Ahoy!",
   "author": null,
   "private": true,
   "main": "node_modules/expo/AppEntry.js",

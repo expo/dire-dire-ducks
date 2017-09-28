@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "ar-cool",
-    "description": "An empty new project",
-    "slug": "ar-cool",
+    "name": "ducks-ahoy",
+    "description": "Fill your room with swimming ducks",
+    "slug": "ducks-ahoy",
     "privacy": "public",
     "sdkVersion": "21.0.0",
     "version": "1.0.0",
