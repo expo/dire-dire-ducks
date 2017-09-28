@@ -172,24 +172,14 @@ export default class App extends React.Component {
     );
 
     // texture
-    function textureFromAsset(asset) {
-      if (!asset.localUri) {
-        throw new Error(
-          `Asset '${asset.name}' needs to be downloaded before ` +
-            `being used as an OpenGL texture.`
-        );
-      }
-      const texture = new THREE.Texture();
-      texture.image = {
-        data: asset,
-        width: asset.width,
-        height: asset.height,
-      };
-      texture.needsUpdate = true;
-      texture.isDataTexture = true; // send to gl.texImage2D() verbatim
-      return texture;
-    }
-    const ballTexture = textureFromAsset(textureAsset);
+    const ballTexture = new THREE.Texture();
+    ballTexture.image = {
+      data: textureAsset,
+      width: textureAsset.width,
+      height: textureAsset.height,
+    };
+    ballTexture.needsUpdate = true;
+    ballTexture.isDataTexture = true; // send to gl.texImage2D() verbatim
     const ballMaterial =  new THREE.MeshPhongMaterial({map: ballTexture});
 
     scaleLongestSideToSize(model, 0.18);
