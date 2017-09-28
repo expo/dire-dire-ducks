@@ -44,6 +44,10 @@ class BlueOverlay extends React.Component {
 }
 
 export default class App extends React.Component {
+  state = {
+    loaded: false,
+  }
+
   componentWillMount() {
     this.panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -58,10 +62,11 @@ export default class App extends React.Component {
       },
       onShouldBlockNativeResponder: () => false,
     });
+    this.preloadAssetsAsync();
   }
 
   render() {
-    return (
+    return this.state.loaded ? (
       <View style={{ flex: 1 }}>
         <Expo.GLView
           {...this.panResponder.panHandlers}
@@ -71,7 +76,18 @@ export default class App extends React.Component {
         />
         <BlueOverlay ref={(ref) => this.overlay = ref} />
       </View>
-    );
+    ) : <Expo.AppLoading />;
+  }
+
+  async preloadAssetsAsync() {
+    await Promise.all([
+      require('./assets/dire_dire_ducks_above_water.mp3'),
+      require('./assets/dire_dire_ducks_underwater.mp3'),
+      require('./assets/wooden-duck.obj'),
+      require('./assets/wooden-duck.png'),
+      require('./assets/waternormals.jpg'),
+    ].map((module) => Expo.Asset.fromModule(module).downloadAsync()));
+    this.setState({ loaded: true });
   }
 
   _onGLContextCreate = async (gl) => {
@@ -150,28 +166,15 @@ export default class App extends React.Component {
     // objects (three.js mesh <-> cannon.js body pairs)
     const objects = [];
 
-    // model and texture assets
-    let modelAsset = Asset.fromModule(require('./assets/wooden-duck.obj'));
-    let textureAsset = Asset.fromModule(require('./assets/wooden-duck.png'));
-
-    // preload assets
-    await Promise.all([
-      modelAsset.downloadAsync(),
-      textureAsset.downloadAsync(),
-    ]);
-
     // model
+    const modelAsset = Asset.fromModule(require('./assets/wooden-duck.obj'));
+    await modelAsset.downloadAsync();
     const loader = new THREE.OBJLoader();
-    const model = await new Promise((resolve, reject) => 
-      loader.load(
-        modelAsset.uri,
-        resolve,
-        () => {}, 
-        reject
-      )
-    );
+    const model = loader.parse(
+      await Expo.FileSystem.readAsStringAsync(modelAsset.localUri))
 
     // texture
+    const textureAsset = Asset.fromModule(require('./assets/wooden-duck.png'));
     const ballTexture = new THREE.Texture();
     ballTexture.image = {
       data: textureAsset,
