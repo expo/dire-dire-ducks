@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "ducks-ahoy",
-    "description": "Fill your room with swimming ducks",
-    "slug": "ducks-ahoy",
+    "name": "dire-dire-ducks",
+    "description": "Flood your room with water and wooden ducks! You can go underwater too!",
+    "slug": "dire-dire-ducks",
     "privacy": "public",
     "sdkVersion": "21.0.0",
     "version": "1.0.0",
