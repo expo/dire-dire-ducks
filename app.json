@@ -4,7 +4,7 @@
     "description": "Flood your room with water and wooden ducks! You can go underwater too!",
     "slug": "dire-dire-ducks",
     "privacy": "public",
-    "sdkVersion": "21.0.0",
+    "sdkVersion": "24.0.0",
     "version": "1.0.0",
     "orientation": "portrait",
     "primaryColor": "#cccccc",
